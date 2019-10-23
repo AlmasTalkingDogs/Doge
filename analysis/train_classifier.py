@@ -7,6 +7,7 @@ from imblearn.over_sampling import SMOTE
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
@@ -113,6 +114,8 @@ elif args.model_type == "LR":
 	model = LogisticRegression(solver='sag', n_jobs=-1, verbose=True)
 elif args.model_type == "NN":
 	model = MLPClassifier(hidden_layer_sizes=(50, 30, 10), verbose=True)
+elif args.model_type == "RF":
+	model = RandomForestClassifier(n_estimators=5)
 else:
 	print("Unknown model type '{0}' specified. View the params help guide to see supported model types.")
 	exit(1)
