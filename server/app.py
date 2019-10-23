@@ -3,7 +3,7 @@ from sanic.exceptions import NotFound, ServerError
 from sanic.request import Request
 from sanic.websocket import WebSocketProtocol, ConnectionClosed
 from sanic.response import html, json
-from asyncio import Event, ensure_future
+from asyncio import Event, ensure_future, sleep
 from json import dumps as json_string
 from jinja2 import Template
 from loguru import logger
@@ -17,6 +17,7 @@ app.enable_websocket()
 # Static bindings allow Sanic to serve files from disk
 # These are explicitly named to avoid someone accidentally placing something secret in one of these folders
 app.static('/res/style.css', './res/style.css')
+app.static('/res/live.js', './res/live.js')
 # app.static('/favicon.ico', './res/favicon.ico')
 
 # Load page templates - it should be easy to change these templates later.
@@ -38,6 +39,25 @@ async def index(request: Request):
     index_html = index_template.render()
     return html(index_html)
 
+
+@app.websocket("/ws/feed")
+async def feed_socket(request: Request, ws: WebSocketProtocol):
+    logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
+    # This is the WebSocket code.
+    # It infinite loops (until the socket is closed when the client disconnects...) and waits on new matches.
+    # When a new match is found, it sends a JSON blob containing the tournament data.
+    number = 0
+    while True:
+        json_blob = {"number": str(number)}
+        number = (number + 1) % 10
+        binary_blob = json_string(json_blob)
+        try:
+            await ws.send(binary_blob)
+            logger.info(f"Updated feed for client at {request.ip}:{request.port}.")
+        except ConnectionClosed:
+            logger.info(f"Feed disconnected from client at {request.ip}:{request.port}.")
+            break
+        await sleep(1)
 
 
 # @app.route("/dogs/<dogId>")
