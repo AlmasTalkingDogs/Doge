@@ -20,6 +20,18 @@
               y:[getData()],
               type:'line'
             }]);
+
+            setInterval(function(){
+                Plotly.extendTraces('tester',{ y:[[getData()]]}, [0]);
+                counter++;
+                if(counter > 50) {
+                    Plotly.relayout('tester',{
+                        xaxis: {
+                            range: [counter-50,counter]
+                        }
+                    });
+                }
+            },30);
         </script>
       </div>
       </div>
