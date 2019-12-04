@@ -12,12 +12,14 @@
       <div class="wrapper">
         <div id="tester"></div>
         <script>
+
             function getData() {
               return Math.random(); //could just make this return the list values.
             }
             function getDataFromList(list) {
               return list.shift();
             }
+            
             var counter = 0;
             var layout = {
               title: 'EEG Livestream',
@@ -29,6 +31,7 @@
                 fixedrange: true
               }
             };
+
             Plotly.plot('tester', [{
               y:[getData()],
               type:'scatter'
