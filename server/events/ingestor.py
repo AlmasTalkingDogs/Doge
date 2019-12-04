@@ -1,4 +1,4 @@
-from events.consumer import EventConsumer, CallbackConsumer
+from events.consumer import EventConsumer, AwaitCallbackConsumer as CallbackConsumer
 from events.producer import EventProducer, CallbackProducer
 from asyncio import ensure_future
 

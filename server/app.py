@@ -10,7 +10,7 @@ from jinja2 import Template
 from loguru import logger
 
 from events.producer import WebsocketProducer
-from events.consumer import WebsocketConsumer, FileConsumer
+from events.consumer import WebsocketConsumer, FileConsumer, CallbackConsumer
 from events.ingestor import LabelIngestor
 
 from registry.resources import Registry
@@ -31,6 +31,8 @@ app.static('/res/live.js', './res/live.js')
 # These are loaded once at the start of the program, and never again.
 with open("res/index.htm") as f:
 	index_template = Template(f.read())
+with open("res/data.htm") as f:
+	data_input_template = Template(f.read())
 
 registry = Registry()
 
@@ -46,6 +48,15 @@ async def index(request: Request):
 	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
 	# The tournament therefore starts the first time the page is loaded.
 	index_html = index_template.render()
+	return html(index_html)
+
+@app.route("/labeler.html")
+async def index(request: Request):
+	global feed_event
+	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
+	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
+	# The tournament therefore starts the first time the page is loaded.
+	index_html = data_input_template.render()
 	return html(index_html)
 
 @app.websocket("/ws/data/write/<source_id>")
@@ -75,19 +86,24 @@ async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
 	await consumer.listen()
 
 
-@app.route("/rsrc/ing/<ing_id>")
+@app.route("/rsrc/ing/<ing_id>", methods=["POST",])
 async def consume_data(request: Request, ing_id: int):
 	if not registry.available(f"/rsrc/ing/{ing_id}"):
 		logger.debug(f"Client at {request.ip}:{request.port} ingestor {ing_id} is already registered")
 		return json({"success": False, "msg": f"Client at {request.ip}:{request.port} failed to find ingestor {ing_id}"})
 	writeFile = FileConsumer('temp.log')
+	printConsumer = CallbackConsumer(lambda x: print(f"ing_id {ing_id}:", x))
+
 
 	labelizer = LabelIngestor(1)
 
 	registry.register(request.path, labelizer)
 
 	labelizer.registerConsumer(writeFile)
+	labelizer.registerConsumer(printConsumer)
+
 	ensure_future(writeFile.listen())
+	ensure_future(printConsumer.listen())
 	return json({"success": True})
 
 

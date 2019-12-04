@@ -62,7 +62,7 @@ class FileConsumer(EventConsumer):
 		self.file.close()
 		return True
 
-class CallbackConsumer(EventConsumer):
+class AwaitCallbackConsumer(EventConsumer):
 	def __init__(self, callback, done=None, **kwargs):
 		super().__init__()
 		self.callback = callback
@@ -72,6 +72,23 @@ class CallbackConsumer(EventConsumer):
 	async def notify(self, data):
 		await super().notify(data)
 		await self.callback(data, **self.kwargs)
+
+	def exit(self):
+		super().exit()
+		if self.done is not None:
+			return self.done(self.kwargs)
+		return True
+
+class CallbackConsumer(EventConsumer):
+	def __init__(self, callback, done=None, **kwargs):
+		super().__init__()
+		self.callback = callback
+		self.done = done
+		self.kwargs = kwargs
+
+	async def notify(self, data):
+		await super().notify(data)
+		self.callback(data, **self.kwargs)
 
 	def exit(self):
 		super().exit()
