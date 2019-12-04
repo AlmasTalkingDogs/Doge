@@ -33,7 +33,6 @@
               y:[getData()],
               type:'scatter'
             }], layout, {displayModeBar: false});
-
             setInterval(function(){
                 Plotly.extendTraces('tester',{ y:[[getData()]]}, [0]);
                 counter++;
