@@ -3,6 +3,7 @@ from sanic.exceptions import NotFound, ServerError
 from sanic.request import Request
 from sanic.websocket import WebSocketProtocol, ConnectionClosed
 from sanic.response import html, json
+
 from asyncio import Event, ensure_future, sleep, wait
 from json import dumps as json_string
 from jinja2 import Template
@@ -11,6 +12,8 @@ from loguru import logger
 from events.producer import WebsocketProducer
 from events.consumer import WebsocketConsumer, FileConsumer
 from events.ingestor import LabelIngestor
+
+from registry.resources import Registry
 
 # Set up a logfile for the sake of debugging/DDoS forensics/postmortems
 logger.add("alma_server.log", rotation="50 KB")
@@ -29,10 +32,11 @@ app.static('/res/live.js', './res/live.js')
 with open("res/index.htm") as f:
 	index_template = Template(f.read())
 
-datasources = {}
-writeFile = FileConsumer('temp.log')
-labelSource = None
-dataSource = None
+registry = Registry()
+
+# writeFile = FileConsumer('temp.log')
+# labelSource = None
+# dataSource = None
 # labelizer = LabelIngestor()
 
 @app.route("/")
@@ -46,46 +50,61 @@ async def index(request: Request):
 
 @app.websocket("/ws/data/write/<source_id>")
 async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
-	if source_id not in datasources:
+	
+	if registry.available(request.path):
 		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}")
 	else:
 		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}: Kicked old consumer")
-		await datasources[source_id].exit()
+		registry.kick(request.path)
 
-	datasources[source_id] = WebsocketProducer(ws)
-	await datasources[source_id].listen()
+	registry.register(request.path, WebsocketProducer(ws))
+	await registry.get(request.path).listen()
 
 @app.websocket("/ws/data/read/<source_id>")
 async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
 	logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
-	if source_id not in datasources:
+	writeRsrc = f"/ws/data/write/{source_id}"
+	if not registry.available(writeRsrc):
 		logger.info(f"Client at {request.ip}:{request.port} failed to find source {source_id}")
 		return
 	logger.info(f"Client at {request.ip}:{request.port} requested to consume {source_id}")
 	consumer = WebsocketConsumer(ws)
-	datasources[source_id].register(consumer)
+
+	p = registry.get(writeRsrc)
+	p.register(consumer)
 	await consumer.listen()
 
 
+@app.route("/rsrc/ing/<ing_id>")
+async def consume_data(request: Request, ing_id: int):
+	if not registry.available(f"/rsrc/ing/{ing_id}"):
+		logger.debug(f"Client at {request.ip}:{request.port} ingestor {ing_id} is already registered")
+		return json({"success": False, "msg": f"Client at {request.ip}:{request.port} failed to find ingestor {ing_id}"})
+	writeFile = FileConsumer('temp.log')
 
+	labelizer = LabelIngestor(1)
 
+	registry.register(request.path, labelizer)
 
-
-@app.websocket("/ws/ing/label/<source_id>")
-async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
-	global labelSource
-	labelSource = WebsocketProducer(ws)
-	await labelSource.listen()
-
-@app.websocket("/ws/ing/data/<source_id>")
-async def consume_data(request: Request, ws: WebSocketProtocol, source_id: int):
-	global dataSource
-	dataSource = WebsocketProducer(ws)
-	labelizer = LabelIngestor(labelSource, dataSource, writeFile, 1)
+	labelizer.registerConsumer(writeFile)
 	ensure_future(writeFile.listen())
-	await dataSource.listen()
+	return json({"success": True})
 
 
+@app.websocket("/ws/ing/<ing_id>/<source_id>")
+async def produce_data(request: Request, ws: WebSocketProtocol, ing_id: int, source_id: int):
+	if registry.available(f"/rsrc/ing/{ing_id}"):
+		logger.debug(f"Client at {request.ip}:{request.port} failed to find source {source_id}")
+		return
+	if not registry.available(f"/ws/ing/{ing_id}/{source_id}"):
+		print("active:", registry.get(f"/ws/ing/{ing_id}/{source_id}").active)
+		logger.debug(f"Client at {request.ip}:{request.port} failed to free up resource /ws/ing/{ing_id}/{source_id}")
+		return
+	ing = registry.get(f"/rsrc/ing/{ing_id}")
+	wp = WebsocketProducer(ws)
+	registry.register(f"/ws/ing/{ing_id}/{source_id}", wp)
+	ing.registerProducer(wp, srcId=int(source_id))
+	await wp.listen()
 
 
 @app.websocket("/ws/feed")
@@ -100,12 +119,16 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 		number = (number + 1) % 10
 		binary_blob = json_string(json_blob)
 		try:
-			await ws.send(binary_blob)
+			data = await ws.recv()
+			print(data)
 			logger.info(f"Updated feed for client at {request.ip}:{request.port}.")
-		except ConnectionClosed:
+		except (ConnectionClosed):
 			logger.info(f"Feed disconnected from client at {request.ip}:{request.port}.")
 			break
-		await sleep(1)
+		except Exception as ex:
+			print("Failed", ex, type(ex))
+			break
+		# await sleep(1)
 
 
 # @app.route("/dogs/<dogId>")

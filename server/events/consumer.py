@@ -1,5 +1,6 @@
 from asyncio import Event, sleep, Queue
 
+# Consumers will consume events
 class EventConsumer():
 	def __init__(self):
 		self.active = False
@@ -16,12 +17,14 @@ class EventConsumer():
 	async def listen(self):
 		while self.active:
 			data = await self.consumer.get()
+			if data is None:
+				break
 			await self.notify(data)
+			self.consumer.task_done()
 		self.exit()
 
 	# Let our consumer know we are closing the connections
 	def exit(self):
-		self.consumer.task_done()
 		self.active = False
 		return True
 
@@ -51,6 +54,7 @@ class FileConsumer(EventConsumer):
 	async def notify(self, data):
 		await super().notify(data)
 		self.file.write(data)
+		self.file.flush()
 		return
 
 	def exit(self):

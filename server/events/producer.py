@@ -1,6 +1,7 @@
 from asyncio import Event, Queue, wait
 from sanic.websocket import ConnectionClosed
 
+# Producers create events
 class EventProducer():
 	def __init__(self):
 		super().__init__()
@@ -17,10 +18,12 @@ class EventProducer():
 		if len(self.consumers) > 0:
 			await wait([c.put(data) for c in self.consumers])
 
-	def exit(self):
+	async def exit(self):
+		if not self.active:
+			return True
 		self.active = False
 		for producer in self.consumers:
-			producer.task_done()
+			await producer.put(None)
 		return True
 
 class WebsocketProducer(EventProducer):
@@ -38,9 +41,11 @@ class WebsocketProducer(EventProducer):
 				if self.parse is not None:
 					data = self.parse(data, self.parse_kwargs)
 				await self.notify(data)
-			except ConnectionClosed:
+			except ConnectionClosed as ex:
 				break
-		super().exit()
+			except:
+				break
+		await self.exit()
 
 class CallbackProducer(EventProducer):
 	def __init__(self):
