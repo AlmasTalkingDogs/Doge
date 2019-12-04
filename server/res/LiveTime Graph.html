@@ -13,13 +13,26 @@
         <div id="tester"></div>
         <script>
             function getData() {
-              return Math.random();
+              return Math.random(); //could just make this return the list values.
+            }
+            function getDataFromList(list) {
+              return list.shift();
             }
             var counter = 0;
+            var layout = {
+              title: 'EEG Livestream',
+              xaxis: {
+                fixedrange: true,
+                showticklabels: false
+              },
+              yaxis: {
+                fixedrange: true
+              }
+            };
             Plotly.plot('tester', [{
               y:[getData()],
-              type:'line'
-            }]);
+              type:'scatter'
+            }], layout, {displayModeBar: false});
 
             setInterval(function(){
                 Plotly.extendTraces('tester',{ y:[[getData()]]}, [0]);
@@ -27,11 +40,12 @@
                 if(counter > 50) {
                     Plotly.relayout('tester',{
                         xaxis: {
-                            range: [counter-50,counter]
+                            range: [counter-50,counter],
+                            fixedrange: true
                         }
                     });
                 }
-            },30);
+            },60);
         </script>
       </div>
       </div>
