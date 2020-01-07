@@ -1,4 +1,4 @@
-from asyncio import Event, Queue, wait
+from asyncio import Event, Queue, wait, QueueEmpty, sleep
 from sanic.websocket import ConnectionClosed
 
 # Producers create events
@@ -10,20 +10,33 @@ class EventProducer():
 
 	def register(self, c):
 		q = Queue()
-		self.consumers.append(q)
-		c._register(q)
-		return q
+		exit_q = Queue()
+		self.consumers.append((q,exit_q))
+		c._register(q, exit_q)
+		# return q
+
+	def _trimInactive(self, item):
+		q, exit_q = item
+		try:
+			item = exit_q.get_nowait()
+			if item is None:
+				return False
+		except QueueEmpty:
+			pass
+		return True
 
 	async def notify(self, data):
+		self.consumers = list(filter(self._trimInactive, self.consumers))
+
 		if len(self.consumers) > 0:
-			await wait([c.put(data) for c in self.consumers])
+			await wait([c.put(data) for c, _ in self.consumers])
 
 	async def exit(self):
 		if not self.active:
 			return True
 		self.active = False
-		for producer in self.consumers:
-			await producer.put(None)
+		for c,_ in self.consumers:
+			await c.put(None)
 		return True
 
 class WebsocketProducer(EventProducer):
@@ -45,6 +58,8 @@ class WebsocketProducer(EventProducer):
 				break
 			except:
 				break
+			# Allow others to steal focus
+			await sleep(0)
 		await self.exit()
 
 class CallbackProducer(EventProducer):

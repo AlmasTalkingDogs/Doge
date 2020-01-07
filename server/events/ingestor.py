@@ -12,38 +12,40 @@ class EventIngestor():
 			self.registerConsumer(c)
 			# self.producer.register(c)
 
-		self.callconsumers = {} #[CallbackConsumer(self._produceCallback, srcId=i) for i in range(len(producers))]
-		# for p, c in zip(producers, self.callconsumers):
-		#	p.register(c)
-		#	ensure_future(c.listen())
+		self.callconsumers = {}
+
 		for i, p in enumerate(producers):
 			self.registerProducer(p, srcId=i)
 
 	def registerProducer(self, p, srcId: int):
+		if not self.active:
+			raise Exception("Not active")
 		if srcId in self.callconsumers and self.callconsumers[srcId].active:
 			raise Exception("srcId", srcId, "is already registered for ingestor", self.callconsumers[srcId].active)
-		c = CallbackConsumer(self._produceCallback, srcId=srcId)
+		c = CallbackConsumer(self.ingest, srcId=srcId)
 		p.register(c)
 		ensure_future(c.listen())
 		self.callconsumers[srcId] = c
 
 	def registerConsumer(self, c):
+		if not self.active:
+			raise Exception("Not active")
 		self.producer.register(c)
-
-	async def _produceCallback(self, data, srcId=-1):
-		await self.ingest(data, srcId)
 
 	async def ingest(self, data, srcId):
 		raise Exception("not implemented")
 
 	async def notifyAll(self, data):
+		if not self.active:
+			raise Exception("Not active")
 		await self.producer.notify(data)
 
-	def exit(self):
+	async def exit(self):
 		self.active = False
 		for i, c in callconsumers:
-			c.exit()
-		self.producer.exit()
+			if c.active:
+				await c.exit()
+		await self.producer.exit()
 
 class LabelIngestor(EventIngestor):
 	def __init__(self, init_label: str):
