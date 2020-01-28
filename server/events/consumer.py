@@ -56,7 +56,7 @@ class WebsocketConsumer(EventConsumer):
 		await super().notify(None)
 		if self.parse is not None:
 			data = self.parse(data, self.parse_kwargs)
-		self.ws.send(data)
+		await self.ws.send(data)
 
 	async def exit(self):
 		await super().exit()
