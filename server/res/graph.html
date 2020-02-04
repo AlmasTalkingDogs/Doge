@@ -6,15 +6,34 @@
       integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
       crossorigin="anonymous"></script>
       <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+      <script src="/res/live.js" type="text/javascript"></script>
 
     </head>
     <body>
       <div class="wrapper">
         <div id="tester"></div>
         <script>
+            var last_data = 0
+            var last_label = 0
+
+            console.log("LOG LOG LOG")
+            var feedSocket2 = new WebSocket(getWebSocketURI("/ws/ingread/10"));
+
+            feedSocket2.onmessage = function(msg) {
+                last_data = parseInt(msg.data.split(",")[0]);
+                last_label = parseInt(msg.data.split(",")[1]);
+            }
+
+            feedSocket2.onopen = function() {
+                console.log("onopen")
+            }
+            
+            feedSocket2.onclose = function() {
+                console.log("onclose")
+            }
 
             function getData() {
-              return Math.random(); //could just make this return the list values.
+              return last_data; //could just make this return the list values.
             }
             function getDataFromList(list) {
               return list.shift();

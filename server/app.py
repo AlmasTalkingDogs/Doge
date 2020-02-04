@@ -25,6 +25,7 @@ app.enable_websocket()
 # These are explicitly named to avoid someone accidentally placing something secret in one of these folders
 app.static('/res/style.css', './res/style.css')
 app.static('/res/live.js', './res/live.js')
+app.static('/graph.html', './res/graph.html')
 # app.static('/favicon.ico', './res/favicon.ico')
 
 # Load page templates - it should be easy to change these templates later.
@@ -36,11 +37,6 @@ with open("res/data.htm") as f:
 
 registry = Registry()
 
-# writeFile = FileConsumer('temp.log')
-# labelSource = None
-# dataSource = None
-# labelizer = LabelIngestor()
-
 @app.route("/")
 async def index(request: Request):
 	global feed_event
@@ -51,7 +47,7 @@ async def index(request: Request):
 	return html(index_html)
 
 @app.route("/labeler.html")
-async def index(request: Request):
+async def labeler_page(request: Request):
 	global feed_event
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
 	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
@@ -65,7 +61,7 @@ async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
 	if registry.available(request.path):
 		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}")
 	else:
-		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}: Kicked old consumer")
+		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}; Kicked out old consumer")
 		registry.kick(request.path)
 
 	registry.register(request.path, WebsocketProducer(ws))
@@ -90,27 +86,40 @@ async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
 async def consume_data(request: Request, ing_id: int):
 	if not registry.available(f"/rsrc/ing/{ing_id}"):
 		logger.debug(f"Client at {request.ip}:{request.port} ingestor {ing_id} is already registered")
-		return json({"success": False, "msg": f"Client at {request.ip}:{request.port} failed to find ingestor {ing_id}"})
+		return json({"success": False, "msg": f"Client at {request.ip}:{request.port} ingestor {ing_id} is already registered"})
 	writeFile = FileConsumer('temp.log')
 	printConsumer = CallbackConsumer(lambda x: print(f"ing_id {ing_id}:", x))
+	logger.info(f"Client at {request.ip}:{request.port} created ingestor {ing_id}.")
 
 
-	labelizer = LabelIngestor(1)
+	labelizer = LabelIngestor(0)
 
-	registry.register(request.path, labelizer)
+	registry.register(f"/rsrc/ing/{ing_id}", labelizer)
 
 	labelizer.registerConsumer(writeFile)
-	labelizer.registerConsumer(printConsumer)
+	# labelizer.registerConsumer(printConsumer)
 
 	ensure_future(writeFile.listen())
-	ensure_future(printConsumer.listen())
+	# ensure_future(printConsumer.listen())
 	return json({"success": True})
 
+@app.websocket("/ws/ingread/<ing_id>")
+async def read_ing_data(request: Request, ws: WebSocketProtocol, ing_id: int):
+	if registry.available(f"/rsrc/ing/{ing_id}"):
+		logger.debug(f"Client at {request.ip}:{request.port} failed to find ingestor {ing_id} for consumption")
+		return
+
+	consumer = WebsocketConsumer(ws)
+
+	ing = registry.get(f"/rsrc/ing/{ing_id}")
+	ing.registerConsumer(consumer)
+
+	await consumer.listen()
 
 @app.websocket("/ws/ing/<ing_id>/<source_id>")
 async def produce_data(request: Request, ws: WebSocketProtocol, ing_id: int, source_id: int):
 	if registry.available(f"/rsrc/ing/{ing_id}"):
-		logger.debug(f"Client at {request.ip}:{request.port} failed to find source {source_id}")
+		logger.debug(f"Client at {request.ip}:{request.port} failed to find ingestor {source_id}")
 		return
 	if not registry.available(f"/ws/ing/{ing_id}/{source_id}"):
 		print("active:", registry.get(f"/ws/ing/{ing_id}/{source_id}").active)
@@ -121,7 +130,6 @@ async def produce_data(request: Request, ws: WebSocketProtocol, ing_id: int, sou
 	registry.register(f"/ws/ing/{ing_id}/{source_id}", wp)
 	ing.registerProducer(wp, srcId=int(source_id))
 	await wp.listen()
-
 
 @app.websocket("/ws/feed")
 async def feed_socket(request: Request, ws: WebSocketProtocol):
@@ -168,4 +176,4 @@ app.error_handler.add(ServerError, ise_handler)
 app.error_handler.add(NotFound, missing_handler)
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=8000)
+	app.run(host='0.0.0.0', port=8080)
