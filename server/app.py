@@ -177,3 +177,13 @@ app.error_handler.add(NotFound, missing_handler)
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=8080)
+
+class Dog:
+	def __init__(self,name='chuchu'):
+		self.name = name
+	def __set_name__(self, name):
+		self.name = name
+	def __get_name__(self):
+		return self.name
+	def __del__(self):
+		del(self)
