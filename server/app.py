@@ -15,6 +15,8 @@ from events.ingestor import LabelIngestor
 
 from registry.resources import Registry
 
+import random
+
 # Set up a logfile for the sake of debugging/DDoS forensics/postmortems
 logger.add("alma_server.log", rotation="50 KB")
 
@@ -80,6 +82,30 @@ async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
 	p = registry.get(writeRsrc)
 	p.register(consumer)
 	await consumer.listen()
+
+# Creates random data for testing purposes
+@app.websocket("/ws/data/random")
+async def consume_data(request: Request, ws: WebSocketProtocol):
+	await sleep(5)
+	label = random.randint(0,1)
+	while True:
+		data = random.randint(0,100)
+		data2 = random.randint(0,100)
+		if random.randint(0,1) == 0:
+			label = random.randint(0,1)
+		await ws.send(f"{data},{data2},{label}")
+		await sleep(1)
+	# logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
+	# writeRsrc = f"/ws/data/write/{source_id}"
+	# if not registry.available(writeRsrc):
+	# 	logger.info(f"Client at {request.ip}:{request.port} failed to find source {source_id}")
+	# 	return
+	# logger.info(f"Client at {request.ip}:{request.port} requested to consume {source_id}")
+	# consumer = WebsocketConsumer(ws)
+
+	# p = registry.get(writeRsrc)
+	# p.register(consumer)
+	# await consumer.listen()
 
 
 @app.route("/rsrc/ing/<ing_id>", methods=["POST",])
