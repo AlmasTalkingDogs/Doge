@@ -191,7 +191,7 @@ async def create_dog(request: Request):
 async def write_dog_data(request:Request,ws: WebSocketProtocol,dog_id:int):
 	dog = registry.get(f"/dog/{dog_id}")
 	wp = WebsocketProducer(ws)
-	dog.assign_producer(wp)
+	dog.set_producer(wp)
 	await wp.listen()
 
 # @app.route("/dogs/<dogId>")
