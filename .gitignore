@@ -1,6 +1,6 @@
 # Custom exception to allow empty directories to be added
 !*.gitkeep
-
+.idea/
 # Example data directories
 toy_problems/grasp_and_lift/data/
 toy_problems/grasp_and_lift/cache/
