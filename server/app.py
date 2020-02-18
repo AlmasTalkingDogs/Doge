@@ -14,9 +14,9 @@ from events.consumer import WebsocketConsumer, FileConsumer, CallbackConsumer
 from events.ingestor import LabelIngestor
 
 from registry.resources import Registry
-
+from entities.dog import Dog
 import random
-
+import uuid
 # Set up a logfile for the sake of debugging/DDoS forensics/postmortems
 logger.add("alma_server.log", rotation="50 KB")
 
@@ -180,6 +180,19 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 			break
 		# await sleep(1)
 
+@app.route("/rsrc/dog/",method=["POST",])
+async def create_dog(request: Request):
+	id = uuid.uuid1()
+	dog = Dog("Chuchu",id)
+	registry.register(f"/dog/{id}", dog)
+	return json({"id":id})
+
+@app.websocket("/rsrc/dog/<dog_id>")
+async def write_dog_data(request:Request,ws: WebSocketProtocol,dog_id:int):
+	dog = registry.get(f"/dog/{dog_id}")
+	wp = WebsocketProducer(ws)
+	dog.assign_producer(wp)
+	await wp.listen()
 
 # @app.route("/dogs/<dogId>")
 # async def netid_lookup(request: Request, netid: str):
