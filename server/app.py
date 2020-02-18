@@ -32,8 +32,7 @@ app.static('/graph.html', './res/graph.html')
 
 # Load page templates - it should be easy to change these templates later.
 # These are loaded once at the start of the program, and never again.
-with open("res/index.htm") as f:
-	index_template = Template(f.read())
+
 with open("res/data.htm") as f:
 	data_input_template = Template(f.read())
 
@@ -41,16 +40,16 @@ registry = Registry()
 
 @app.route("/")
 async def index(request: Request):
-	global feed_event
+	with open("res/index.htm") as f:
+		index_template = Template(f.read())
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
 	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
 	# The tournament therefore starts the first time the page is loaded.
-	index_html = index_template.render()
+	index_html = index_template.render(dogs=[{"name":"chuck", "id":0}, {"name":"Mary","id":3}])
 	return html(index_html)
 
 @app.route("/labeler.html")
 async def labeler_page(request: Request):
-	global feed_event
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
 	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
 	# The tournament therefore starts the first time the page is loaded.
@@ -59,7 +58,7 @@ async def labeler_page(request: Request):
 
 @app.websocket("/ws/data/write/<source_id>")
 async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
-	
+
 	if registry.available(request.path):
 		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}")
 	else:
@@ -181,13 +180,13 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 		# await sleep(1)
 
 
-# @app.route("/dogs/<dogId>")
-# async def netid_lookup(request: Request, netid: str):
-#     logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-#     errors = rr.get_errors(netid)
-#     team = rr.get_team(netid)
-#     netid_html = netid_template.render(netid=netid, team=team, errors=errors)
-#     return html(netid_html)
+@app.route("/dog/<dogId>")
+async def netid_lookup(request: Request, dogId: str):
+	with open("res/dog.htm") as f:
+		dog_template = Template(f.read())
+	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
+	dog_html = dog_template.render(dog={"name": "dave", "id":"7"})
+	return html(dog_html)
 
 
 async def ise_handler(request, exception):
