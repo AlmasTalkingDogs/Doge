@@ -4,6 +4,7 @@
 # Example data directories
 toy_problems/grasp_and_lift/data/
 toy_problems/grasp_and_lift/cache/
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
