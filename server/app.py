@@ -59,11 +59,10 @@ async def labeler_page(request: Request):
 
 @app.websocket("/ws/data/write/<source_id>")
 async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
-	
 	if registry.available(request.path):
 		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}")
 	else:
-		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}; Kicked out old consumer")
+		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}; Kicked out old producer")
 		registry.kick(request.path)
 
 	registry.register(request.path, WebsocketProducer(ws))
@@ -73,7 +72,7 @@ async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
 async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
 	logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
 	writeRsrc = f"/ws/data/write/{source_id}"
-	if not registry.available(writeRsrc):
+	if registry.available(writeRsrc):
 		logger.info(f"Client at {request.ip}:{request.port} failed to find source {source_id}")
 		return
 	logger.info(f"Client at {request.ip}:{request.port} requested to consume {source_id}")
@@ -180,7 +179,7 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 			break
 		# await sleep(1)
 
-@app.route("/rsrc/dog/",method=["POST",])
+@app.route("/rsrc/dog/", methods=["POST",])
 async def create_dog(request: Request):
 	id = uuid.uuid1()
 	dog = Dog("Chuchu",id)

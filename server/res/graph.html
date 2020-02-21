@@ -18,7 +18,8 @@
             var currentGraph = 0;
 
             console.log("LOG LOG LOG")
-            var feedSocket2 = new WebSocket(getWebSocketURI("/ws/data/random"));
+            // var feedSocket2 = new WebSocket(getWebSocketURI("/ws/data/random"));
+            var feedSocket2 = new WebSocket(getWebSocketURI("/ws/data/read/7"));
 
             function getData(config) {
               if(datalist[config] !== undefined && datalist[config].length != 0) {
@@ -132,7 +133,8 @@
                 console.log("onclose")
             }
 
-            plot('tester', feedSocket2, ['data1', 'data2', 'flag']);
+            // plot('tester', feedSocket2, ['data1', 'data2', 'flag']);
+            plot('tester', feedSocket2, ['data1']);
 
         </script>
       </div>
