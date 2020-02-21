@@ -13,62 +13,127 @@
       <div class="wrapper">
         <div id="tester"></div>
         <script>
-            var last_data = 0
-            var last_label = 0
+
+            var datalist = {};
+            var currentGraph = 0;
 
             console.log("LOG LOG LOG")
-            var feedSocket2 = new WebSocket(getWebSocketURI("/ws/ingread/10"));
+            var feedSocket2 = new WebSocket(getWebSocketURI("/ws/data/random"));
 
-            feedSocket2.onmessage = function(msg) {
-                last_data = parseInt(msg.data.split(",")[0]);
-                last_label = parseInt(msg.data.split(",")[1]);
+            function getData(config) {
+              if(datalist[config] !== undefined && datalist[config].length != 0) {
+                return datalist[config].shift();
+              } else {
+                return '0';
+              }
+            }
+            //function that takes in divID and websocket as well as configs
+            //meant to correlate the data sent in from websocket
+            function plot(divId, websocket, configs) {
+              var counter = 0;
+
+              var currTrace = 1;
+              for(i in configs) {
+                datalist[configs[i]] = [];
+              }
+              var layout = {
+                title: 'EEG Livestream',
+                xaxis: {
+                  fixedrange: true,
+                  showticklabels: false
+                },
+                yaxis: {
+                  fixedrange: true
+                },
+                trace2: {
+                  visible: false
+                }
+              };
+              let dataset = [];
+              for(key in datalist) {
+                dataset.push({
+                  y: datalist[key],
+                  type: 'scatter'
+                })
+              }
+              Plotly.plot(divId, dataset, layout, {displayModeBar: false});
+
+              setInterval(function(){
+                let index = 0;
+                for(key in datalist) {
+                  newdata = getData(key);
+                  console.log(newdata)
+                  if(newdata != '0' && key !== "flag") {
+                    Plotly.extendTraces(divId, {y: [[newdata]]}, [index]);
+                    //Plotly.update(divId, datalist[key], layout, index)
+                  }
+                  index++;
+                  counter++;
+                  // if(counter > 50) {
+                  //     Plotly.relayout(divId,{
+                  //       xaxis: {
+                  //           range: [counter-50,counter],
+                  //           fixedrange: true
+                  //       }
+                  //   });
+                  // }
+                    // if(counter % 100 == 0) {
+                    //     switch(currTrace) {
+                    //       case 1:
+                    //         Plotly.deleteTraces(divId, currTrace-1);
+                    //         currTrace = 2;
+                    //         Plotly.relayout(divId, {
+                    //           trace2: {
+                    //             visible: true
+                    //           },
+                    //           trace1: {
+                    //             visible: false
+                    //           }
+                    //         });
+                    //         break;
+                    //       case 2:
+                    //         Plotly.deleteTraces(divId, currTrace-1); //put the trace back in somehow
+                    //         currTrace = 1;
+                    //         Plotly.relayout(divId, {
+                    //           trace1: {
+                    //             visible: true
+                    //           },
+                    //           trace2: {
+                    //             visible: false
+                    //           }
+                             // })
+                        //}
+                    //}
+                  }
+              },60);
+
+              // Do we assume that the configs always mach the number of data in the message?
+              websocket.onmessage = function(msg) {
+                console.log(msg)
+                msg_data = msg.data.split(",");
+                var index = 0;
+                for(i in configs) {
+                  let config = configs[i]
+                  if(index < msg_data.length) {
+                    datalist[config].push(msg_data[index]);
+                  } else {
+                    datalist[config].push('0'); //if msg doesn't contain data for certain config, 0 is automatically appended
+                  }
+                  index++;
+                }
+              }
             }
 
             feedSocket2.onopen = function() {
                 console.log("onopen")
             }
-            
+
             feedSocket2.onclose = function() {
                 console.log("onclose")
             }
 
-            function getData() {
-              return last_data; //could just make this return the list values.
-            }
-            function getDataFromList(list) {
-              return list.shift();
-            }
-            function createGraph(div_id) {
+            plot('tester', feedSocket2, ['data1', 'data2', 'flag']);
 
-            }
-            var counter = 0;
-            var layout = {
-              title: 'EEG Livestream',
-              xaxis: {
-                fixedrange: true,
-                showticklabels: false
-              },
-              yaxis: {
-                fixedrange: true
-              }
-            };
-
-            Plotly.plot('tester', [{
-              y:[getData()],
-              type:'scatter'
-            }], layout, {displayModeBar: false});
-            setInterval(function(){
-                Plotly.extendTraces('tester',{ y:[[getData()]]}, [0]);
-                counter++;
-                if(counter > 50) {
-                    Plotly.relayout('tester',{
-                        xaxis: {
-                            range: [counter-50,counter],
-                            fixedrange: true
-                        }
-                    });
-                }
-            },60);
         </script>
       </div>
       </div>
