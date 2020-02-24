@@ -38,6 +38,9 @@ with open("res/data.htm") as f:
 
 registry = Registry()
 
+
+
+
 @app.route("/")
 async def index(request: Request):
 	with open("res/index.htm") as f:
@@ -45,8 +48,25 @@ async def index(request: Request):
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
 	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
 	# The tournament therefore starts the first time the page is loaded.
-	index_html = index_template.render(dogs=[{"name":"chuck", "id":0}, {"name":"Mary","id":3}])
+	index_html = index_template.render(dogs=[{"name":"Dog 1", "id":0}, {"name":"Dog 2","id":2}, {"name":"Dog 3","id":3}])
 	return html(index_html)
+
+@app.route("/dog/<dogId>")
+async def netid_lookup(request: Request, dogId: str):
+	with open("res/dog.htm") as f:
+		dog_template = Template(f.read())
+	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
+	dog_html = dog_template.render(dog={"name": "dave", "id":"7"})
+	return html(dog_html)
+
+@app.route("/dog/<dogId>/session")
+async def netid_lookup(request: Request, dogId: str):
+	with open("res/session.htm") as f:
+		session_template = Template(f.read())
+	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
+	dog_html = dog_template.render(dog={"name": "dave", "id":"7"})
+	return html(dog_html)
+
 
 @app.route("/labeler.html")
 async def labeler_page(request: Request):
@@ -180,13 +200,7 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 		# await sleep(1)
 
 
-@app.route("/dog/<dogId>")
-async def netid_lookup(request: Request, dogId: str):
-	with open("res/dog.htm") as f:
-		dog_template = Template(f.read())
-	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-	dog_html = dog_template.render(dog={"name": "dave", "id":"7"})
-	return html(dog_html)
+
 
 
 async def ise_handler(request, exception):
