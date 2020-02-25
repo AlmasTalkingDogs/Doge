@@ -180,7 +180,7 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 			break
 		# await sleep(1)
 
-@app.route("/rsrc/dog/",method=["POST",])
+@app.route("/rsrc/dog/", methods=["POST",])
 async def create_dog(request: Request):
 	id = uuid.uuid1()
 	dog = Dog("Chuchu",id)
