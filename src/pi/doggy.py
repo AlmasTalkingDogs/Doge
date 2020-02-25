@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 import argparse
 import serial
 import websockets
@@ -18,37 +19,45 @@ def rand(i):
 
 async def main(args):
     if args.verbose:
-        print("Started up")
+        print("Started up in main mode")
     ser = serial.Serial(args.serial, 9600)
-    try:
-        if args.uri:
-            if args.verbose:
-                print("Using websocket")
-            async with websockets.connect(args.uri) as ws:
+    while True:
+        if args.verbose:
+            print("Attempting connection")
+        try:
+            if args.uri:
+                if args.verbose:
+                    print("Using websocket")
+                async with websockets.connect(args.uri) as ws:
+                    if args.verbose:
+                        print("Connection established")
+                    while True:
+                        while ser.in_waiting == 0:
+                            pass
+
+
+                        try:
+                            line = ser.readline()
+                            line = line.decode("UTF-8").strip()
+                            if args.verbose:
+                                print(line)
+                            await ws.send(line)
+                        except:
+                            pass
+            else:
+                if args.verbose:
+                    print("No websocket provided")
                 while True:
-                    print(ws)
                     while ser.in_waiting == 0:
                         pass
-
                     line = ser.readline()
 
-                    if args.verbose:
-                        print(line)
-
-                    await ws.send(line)
-        else:
+                    print(line)
+        except Exception as e:
             if args.verbose:
-                print("No websocket provided")
-            while True:
-                while ser.in_waiting == 0:
-                    pass
-                line = ser.readline()
-
-                print(line)
-    except Exception as e:
-        if args.verbose:
-            print("Exception occured. Connection closed due to ", e)
-        pass
+                print("Exception occured. Connection closed due to ", e)
+                print("Trying connection again in 5 seconds")
+            await asyncio.sleep(5)
 
 async def test(args):
     if args.verbose:
@@ -63,36 +72,42 @@ async def test(args):
     elif args.test == test_modes[3]:
         func = wave
 
-    i = 0
-    try:
-        if args.uri:
-            if args.verbose:
-                print("Using websocket")
-            async with websockets.connect(args.uri) as ws:
-                while  True:
+    while True:
+        if args.verbose:
+            print("Attempting connection")
+        i = 0
+        try:
+            if args.uri:
+                if args.verbose:
+                    print("Using websocket")
+                async with websockets.connect(args.uri) as ws:
+                    if args.verbose:
+                        print("Connection established")
+                    while  True:
+                        await asyncio.sleep(.1)
+
+                        line = func(i)
+
+                        if args.verbose:
+                            print(line)
+
+                        await ws.send(line)
+                        i += 1
+            else:
+                if args.verbose:
+                    print("No websocket provided")
+                while True:
                     await asyncio.sleep(.1)
 
                     line = func(i)
 
-                    if args.verbose:
-                        print(line)
-
-                    await ws.send(line)
+                    print(line)
                     i += 1
-        else:
+        except Exception as e:
             if args.verbose:
-                print("No websocket provided")
-            while True:
-                await asyncio.sleep(.1)
-
-                line = func(i)
-
-                print(line)
-                i += 1
-    except Exception as e:
-        if args.verbose:
-            print("Exception occured. Connection closed due to ", e)
-        pass
+                print("Exception occured. Connection closed due to ", e)
+                print("Trying connection again in 5 seconds")
+            await asyncio.sleep(5)
 
 
 
