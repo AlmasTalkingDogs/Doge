@@ -38,7 +38,7 @@ class Registry():
 	def get_dogs(self):
 		return self.all_dogs
 
-	def add__to_all_dogs(self):
+	def add_dog(self):
 		self.all_dogs.append(self)
 
 	async def kick(self, resource):
