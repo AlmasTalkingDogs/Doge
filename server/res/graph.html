@@ -25,7 +25,7 @@
               if(datalist[config] !== undefined && datalist[config].length != 0) {
                 return datalist[config].shift();
               } else {
-                return '0';
+                return '_';
               }
             }
             //function that takes in divID and websocket as well as configs
@@ -59,17 +59,22 @@
               }
               Plotly.plot(divId, dataset, layout, {displayModeBar: false});
 
-              setInterval(function(){
+              let interval = setInterval(function(){
                 let index = 0;
                 for(key in datalist) {
                   newdata = getData(key);
-                  console.log(newdata)
-                  if(newdata != '0' && key !== "flag") {
+                  // console.log(newdata)
+                  if(newdata != '_' && key !== "flag") { //
                     Plotly.extendTraces(divId, {y: [[newdata]]}, [index]);
+
                     //Plotly.update(divId, datalist[key], layout, index)
                   }
                   index++;
                   counter++;
+                  // if (counter >= 100) {
+                  //   Plotly.relayout(divId, { 'xaxis.range': [0, counter]});
+                  //   clearInterval(interval);
+                  // }
                   // if(counter > 50) {
                   //     Plotly.relayout(divId,{
                   //       xaxis: {
@@ -110,7 +115,6 @@
 
               // Do we assume that the configs always mach the number of data in the message?
               websocket.onmessage = function(msg) {
-                console.log(msg)
                 msg_data = msg.data.split(",");
                 var index = 0;
                 for(i in configs) {
@@ -118,9 +122,12 @@
                   if(index < msg_data.length) {
                     datalist[config].push(msg_data[index]);
                   } else {
-                    datalist[config].push('0'); //if msg doesn't contain data for certain config, 0 is automatically appended
+                    datalist[config].push('_'); //if msg doesn't contain data for certain config, 0 is automatically appended
                   }
                   index++;
+                  if (datalist[config].length > 100) {
+                    datalist[config] = datalist[config].slice(-100)
+                  }
                 }
               }
             }

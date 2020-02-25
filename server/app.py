@@ -67,6 +67,8 @@ async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
 
 	registry.register(request.path, WebsocketProducer(ws))
 	await registry.get(request.path).listen()
+	logger.info(f"Client at {request.ip}:{request.port} stoped writing to source {source_id}")
+
 
 @app.websocket("/ws/data/read/<source_id>")
 async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
