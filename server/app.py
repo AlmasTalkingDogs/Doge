@@ -196,7 +196,7 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 async def create_dog(request: Request):
     id = uuid.uuid1()
     dog = Dog("Chuchu", id)
-    registry.register(f"/dog/{id}", dog)
+    registry.add_dog(dog)
     return json({"id": id})
 
 
