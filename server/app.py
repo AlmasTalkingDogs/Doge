@@ -169,30 +169,28 @@ async def produce_data(request: Request, ws: WebSocketProtocol, ing_id: int, sou
 
 @app.websocket("/ws/feed")
 async def feed_socket(request: Request, ws: WebSocketProtocol):
-    logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
-    # This is the WebSocket code.
-    # It infinite loops (until the socket is closed when the client disconnects...) and waits on new matches.
-    # When a new match is found, it sends a JSON blob containing the tournament data.
-    number = 0
-    while True:
-        json_blob = {"number": str(number)}
-        number = (number + 1) % 10
-        binary_blob = json_string(json_blob)
-        try:
-            data = await ws.recv()
-            print(data)
-            logger.info(f"Updated feed for client at {request.ip}:{request.port}.")
-        except (ConnectionClosed):
-            logger.info(f"Feed disconnected from client at {request.ip}:{request.port}.")
-            break
-        except Exception as ex:
-            print("Failed", ex, type(ex))
-            break
+	logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
+	# This is the WebSocket code.
+	# It infinite loops (until the socket is closed when the client disconnects...) and waits on new matches.
+	# When a new match is found, it sends a JSON blob containing the tournament data.
+	number = 0
+	while True:
+		json_blob = {"number": str(number)}
+		number = (number + 1) % 10
+		binary_blob = json_string(json_blob)
+		try:
+			data = await ws.recv()
+			print(data)
+			logger.info(f"Updated feed for client at {request.ip}:{request.port}.")
+		except (ConnectionClosed):
+			logger.info(f"Feed disconnected from client at {request.ip}:{request.port}.")
+			break
+		except Exception as ex:
+			print("Failed", ex, type(ex))
+			break
+		# await sleep(1)
 
-
-# await sleep(1)
-
-@app.route("/rsrc/dog/", methods=["POST", ])
+@app.route("/rsrc/dog/", methods=["POST",])
 async def create_dog(request: Request):
     id = uuid.uuid1()
     dog = Dog("Chuchu", id)
