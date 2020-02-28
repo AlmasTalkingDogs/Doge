@@ -41,6 +41,11 @@ class Registry():
 	def add_dog(self):
 		self.all_dogs.append(self)
 
+    def get_dog(id1, self):
+		for dog in self.all_dogs:
+			if dog.id == id1:
+				return {"name":dog.name,"id":dog.id}
+
 	async def kick(self, resource):
 		rsrc = self.get(resource)
 		# Make sure that the consumers are active
