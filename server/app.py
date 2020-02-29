@@ -27,6 +27,7 @@ app.enable_websocket()
 # Static bindings allow Sanic to serve files from disk
 # These are explicitly named to avoid someone accidentally placing something secret in one of these folders
 app.static('/res/style.css', './res/style.css')
+app.static('/res/graph.js', './res/graph.js')
 app.static('/res/live.js', './res/live.js')
 app.static('/graph.html', './res/graph.html')
 # app.static('/favicon.ico', './res/favicon.ico')
