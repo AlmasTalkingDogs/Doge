@@ -44,7 +44,8 @@ class Registry():
     def get_dog(id1, self):
 		for dog in self.all_dogs:
 			if dog.id == id1:
-				return {"name":dog.name,"id":dog.id}
+				a={"name":dog.name,"id":dog.id}
+				return dog
 
 	async def kick(self, resource):
 		rsrc = self.get(resource)
