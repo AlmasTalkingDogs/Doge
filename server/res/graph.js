@@ -51,7 +51,7 @@ function plot(divId, websocket, configs) {
     for(index in msg_data) {
       var data = parseInt(msg_data[index]);
       console.log(data, index);
-      Plotly.extendTraces(divId, {y: [[data]]}, [parseInt(index)], 10);
+      Plotly.extendTraces(divId, {y: [[data]]}, [parseInt(index)], 100);
     }
   }
 }
