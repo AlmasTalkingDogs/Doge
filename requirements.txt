@@ -1,0 +1,6 @@
+django-theherk-events
+websockets==8.1
+sanic==19.12.2
+loguru==0.4.0
+numpy==1.18.1
+Jinja2==2.10.1

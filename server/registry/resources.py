@@ -4,6 +4,7 @@ from events.ingestor import EventIngestor
 from asyncio import wait
 
 class Registry():
+	all_dogs=[]
 	def __init__(self):
 		self._registry = {}
 
@@ -33,6 +34,12 @@ class Registry():
 			return not self._registry[resource].active
 		else:
 			return False
+
+	def get_dogs(self):
+		return self.all_dogs
+
+	def add_dog(self):
+		self.all_dogs.append(self)
 
 	async def kick(self, resource):
 		rsrc = self.get(resource)
