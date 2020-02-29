@@ -27,6 +27,7 @@ app.enable_websocket()
 # These are explicitly named to avoid someone accidentally placing something secret in one of these folders
 app.static('/res/style.css', './res/style.css')
 app.static('/res/live.js', './res/live.js')
+app.static('/res/graph.js', './res/graph.js')
 app.static('/graph.html', './res/graph.html')
 # app.static('/favicon.ico', './res/favicon.ico')
 
@@ -59,7 +60,7 @@ async def labeler_page(request: Request):
 
 @app.websocket("/ws/data/write/<source_id>")
 async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
-	
+
 	if registry.available(request.path):
 		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}")
 	else:
