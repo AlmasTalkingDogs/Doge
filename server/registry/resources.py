@@ -38,13 +38,13 @@ class Registry():
 	def get_dogs(self):
 		return self.all_dogs
 
-	def add_dog(self):
-		self.all_dogs.append(self)
-
-    def get_dog(id1, self):
+	def get_dog(self, id1):
 		for dog in self.all_dogs:
 			if dog.id == id1:
 				return dog
+
+	def add_dog(self):
+		self.all_dogs.append(self)
 
 	async def kick(self, resource):
 		rsrc = self.get(resource)
