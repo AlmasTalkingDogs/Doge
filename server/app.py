@@ -199,8 +199,8 @@ async def create_dog(request: Request):
 
 
 @app.route("/rsrc/dog/<dog_id>", methods=["GET",])
-async def get_dog(request: Request, dog_id: int):
-    dog = registry.get_dog(dog_id)
+async def get_dog_json(request: Request, dog_id: int):
+    dog = registry.get_dog_object(dog_id)
     return json({"id":dog.id, "name":dog.name})
 
 

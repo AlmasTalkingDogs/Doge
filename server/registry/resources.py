@@ -38,7 +38,7 @@ class Registry():
 	def get_dogs(self):
 		return self.all_dogs
 
-	def get_dog(self, id1):
+	def get_dog_object(self, id1):
 		for dog in self.all_dogs:
 			if dog.id == id1:
 				return dog
