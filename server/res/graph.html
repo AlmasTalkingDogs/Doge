@@ -14,8 +14,134 @@
       <div class="wrapper">
         <div id="tester"></div>
         <script>
-            var feedSocket = new WebSocket(getWebSocketURI("/ws/data/random"));
-            plot('tester', feedSocket, ['data1', 'data2', 'flag']);
+            var datalist = {};
+            var currentGraph = 0;
+
+            console.log("LOG LOG LOG")
+            // var feedSocket2 = new WebSocket(getWebSocketURI("/ws/data/random"));
+            var feedSocket2 = new WebSocket(getWebSocketURI("/ws/data/read/7"));
+
+            function getData(config) {
+              if(datalist[config] !== undefined && datalist[config].length != 0) {
+                return datalist[config].shift();
+              } else {
+                return '_';
+              }
+            }
+            //function that takes in divID and websocket as well as configs
+            //meant to correlate the data sent in from websocket
+            function plot(divId, websocket, configs) {
+              var counter = 0;
+
+              var currTrace = 1;
+              for(i in configs) {
+                datalist[configs[i]] = [];
+              }
+              var layout = {
+                title: 'EEG Livestream',
+                xaxis: {
+                  fixedrange: true,
+                  showticklabels: false
+                },
+                yaxis: {
+                  fixedrange: true
+                },
+                trace2: {
+                  visible: false
+                }
+              };
+              let dataset = [];
+              for(key in datalist) {
+                dataset.push({
+                  y: datalist[key],
+                  type: 'scatter'
+                })
+              }
+              Plotly.plot(divId, dataset, layout, {displayModeBar: false});
+
+              let interval = setInterval(function(){
+                let index = 0;
+                for(key in datalist) {
+                  newdata = getData(key);
+                  // console.log(newdata)
+                  if(newdata != '_' && key !== "flag") { //
+                    Plotly.extendTraces(divId, {y: [[newdata]]}, [index]);
+
+                    //Plotly.update(divId, datalist[key], layout, index)
+                  }
+                  index++;
+                  counter++;
+                  // if (counter >= 100) {
+                  //   Plotly.relayout(divId, { 'xaxis.range': [0, counter]});
+                  //   clearInterval(interval);
+                  // }
+                  // if(counter > 50) {
+                  //     Plotly.relayout(divId,{
+                  //       xaxis: {
+                  //           range: [counter-50,counter],
+                  //           fixedrange: true
+                  //       }
+                  //   });
+                  // }
+                    // if(counter % 100 == 0) {
+                    //     switch(currTrace) {
+                    //       case 1:
+                    //         Plotly.deleteTraces(divId, currTrace-1);
+                    //         currTrace = 2;
+                    //         Plotly.relayout(divId, {
+                    //           trace2: {
+                    //             visible: true
+                    //           },
+                    //           trace1: {
+                    //             visible: false
+                    //           }
+                    //         });
+                    //         break;
+                    //       case 2:
+                    //         Plotly.deleteTraces(divId, currTrace-1); //put the trace back in somehow
+                    //         currTrace = 1;
+                    //         Plotly.relayout(divId, {
+                    //           trace1: {
+                    //             visible: true
+                    //           },
+                    //           trace2: {
+                    //             visible: false
+                    //           }
+                             // })
+                        //}
+                    //}
+                  }
+              },60);
+
+              // Do we assume that the configs always mach the number of data in the message?
+              websocket.onmessage = function(msg) {
+                msg_data = msg.data.split(",");
+                var index = 0;
+                for(i in configs) {
+                  let config = configs[i]
+                  if(index < msg_data.length) {
+                    datalist[config].push(msg_data[index]);
+                  } else {
+                    datalist[config].push('_'); //if msg doesn't contain data for certain config, 0 is automatically appended
+                  }
+                  index++;
+                  if (datalist[config].length > 100) {
+                    datalist[config] = datalist[config].slice(-100)
+                  }
+                }
+              }
+            }
+
+            feedSocket2.onopen = function() {
+                console.log("onopen")
+            }
+
+            feedSocket2.onclose = function() {
+                console.log("onclose")
+            }
+
+            // plot('tester', feedSocket2, ['data1', 'data2', 'flag']);
+            plot('tester', feedSocket2, ['data1']);
         </script>
       </div>
       </div>

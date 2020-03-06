@@ -67,18 +67,19 @@ async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
 	if registry.available(request.path):
 		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}")
 	else:
-		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}; Kicked out old consumer")
+		logger.info(f"Client at {request.ip}:{request.port} registered source {source_id}; Kicked out old producer")
 		registry.kick(request.path)
 
 	registry.register(request.path, WebsocketProducer(ws))
 	await registry.get(request.path).listen()
+	logger.info(f"Client at {request.ip}:{request.port} stoped writing to source {source_id}")
 
 
 @app.websocket("/ws/data/read/<source_id>")
 async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
 	logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
 	writeRsrc = f"/ws/data/write/{source_id}"
-	if not registry.available(writeRsrc):
+	if registry.available(writeRsrc):
 		logger.info(f"Client at {request.ip}:{request.port} failed to find source {source_id}")
 		return
 	logger.info(f"Client at {request.ip}:{request.port} requested to consume {source_id}")
