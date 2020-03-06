@@ -46,7 +46,7 @@ async def index(request: Request):
 	with open("res/index.htm") as f:
 		index_template = Template(f.read())
 		logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-		index_html = index_template.render()
+		index_html = index_template.render(dogs=registry.get_dogs())
 		return html(index_html)
 
 
