@@ -56,16 +56,17 @@ async def netid_lookup(request: Request, dogId: str):
 	with open("res/dog.htm") as f:
 		dog_template = Template(f.read())
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-	dog_html = dog_template.render(dog={"name": "dave", "id":"7"})
+	dog_html = dog_template.render(dog={"name": "dave", "id":dogId})
 	return html(dog_html)
 
 @app.route("/dog/<dogId>/session")
 async def netid_lookup(request: Request, dogId: str):
-	with open("res/session.htm") as f:
+	with open("res/graph.html") as f:
 		session_template = Template(f.read())
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-	dog_html = dog_template.render(dog={"name": "dave", "id":"7"})
-	return html(dog_html)
+	session_html = session_template.render(dog={"name": "dave", "id":dogId}, sessionId=0)
+	return html(session_html)
+
 
 
 @app.route("/labeler.html")

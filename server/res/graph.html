@@ -7,9 +7,20 @@
       crossorigin="anonymous"></script>
       <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
       <script src="/res/live.js" type="text/javascript"></script>
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+      <!-- jQuery library -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+      <!-- Latest compiled JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
 
     </head>
     <body>
+    <h1 class="text-center">Alma's Talking Dogs</h1>
       <div class="wrapper">
         <div id="tester"></div>
         <script>
@@ -27,7 +38,7 @@
             feedSocket2.onopen = function() {
                 console.log("onopen")
             }
-            
+
             feedSocket2.onclose = function() {
                 console.log("onclose")
             }
@@ -69,8 +80,36 @@
                     });
                 }
             },60);
+
         </script>
+
+      <div class="text-center">
+        <div class="btn-group-vertical">
+          <!--
+          When the first button is clicked, data should start flowing from
+          the Arduino to the phone
+
+          When the second button is clicked, data should stop flowing.
+         -->
+
+          <button type="button" class="btn btn-primary" onclick = "">
+             Start Collection
+          </button>
+          <button type="button" class="btn btn-primary" onclick = "">
+            End Session
+          </button>
+          <script>
+          var b1 = document.getElementById("btnOUs");
+          b1.onclick = function() {
+            b1.style.background = "green";
+          }
+
+          </script>
+          <button type="button" id="btnOUs" class="btn btn-primary" ng-click=
+          "levelOU()">Organization Units </button>
+        </div>
       </div>
-      </div>
+
+
     </body>
   </html>
