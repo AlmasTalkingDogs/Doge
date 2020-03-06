@@ -34,8 +34,7 @@ app.static('/graph.html', './res/graph.html')
 
 # Load page templates - it should be easy to change these templates later.
 # These are loaded once at the start of the program, and never again.
-with open("res/index.htm") as f:
-	index_template = Template(f.read())
+
 with open("res/data.htm") as f:
 	data_input_template = Template(f.read())
 
@@ -44,10 +43,11 @@ registry = Registry()
 
 @app.route("/")
 async def index(request: Request):
-	global feed_event
-	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-	index_html = index_template.render()
-	return html(index_html)
+	with open("res/index.htm") as f:
+		index_template = Template(f.read())
+		logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
+		index_html = index_template.render()
+		return html(index_html)
 
 
 @app.route("/labeler.html")
