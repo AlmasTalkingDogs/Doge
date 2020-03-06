@@ -122,7 +122,7 @@ async def consume_data3(request: Request, ws: WebSocketProtocol):
 
 
 @app.route("/rsrc/ing/<dog_id>", methods=["POST", ])
-async def consume_data4(request: Request, dog_id: int):
+async def consume_data4(request: Request, dog_id: str):
 	if not registry.available(f"/rsrc/ing/{dog_id}"):
 		logger.debug(f"Client at {request.ip}:{request.port} cannot create an ingestor for {dog_id}")
 		return json(
@@ -166,9 +166,9 @@ async def read_ing_data(request: Request, ws: WebSocketProtocol, dog_id: int):
 
 
 @app.websocket("/ws/ing/<ing_id>/<source_id>")
-async def produce_data(request: Request, ws: WebSocketProtocol, ing_id: int, source_id: int):
+async def produce_data2(request: Request, ws: WebSocketProtocol, ing_id: int, source_id: int):
 	if registry.available(f"/rsrc/ing/{ing_id}"):
-		logger.debug(f"Client at {request.ip}:{request.port} failed to find ingestor {source_id}")
+		logger.debug(f"Client at {request.ip}:{request.port} failed to find ingestor {ing_id}")
 		return
 	if not registry.available(f"/ws/ing/{ing_id}/{source_id}"):
 		print("active:", registry.get(f"/ws/ing/{ing_id}/{source_id}").active)

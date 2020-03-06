@@ -34,6 +34,7 @@ def create_dog(args):
 	if args.verbose:
 		print("Created dog", msg["id"])
 
+	# Create ingestor
 	URL = "http://" + args.uri + "/rsrc/ing/" + msg["id"]
 	print(URL)
 	dog_pre = msg["id"][:6]

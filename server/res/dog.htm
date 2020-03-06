@@ -16,8 +16,19 @@
       <script>
           var feedSocket = new WebSocket(getWebSocketURI("/ws/ingread/{{ id }}"));
           plot('tester', feedSocket, {{ config }});
+          // In here bc I hate you
+          setTimeout(labelIngestor, 100);
       </script>
     </div>
+
+    <form onsubmit="labelIngestor();return false;">
+      Ingestor Id: <input type="hidden" id="ing_id" value="{{ id }}"><br>
+      <!-- <input type="submit" value="Connect"> -->
+    </form> <br>
+    Status: <div id="status">No Connection</div> <br>
+
+
+    <button type="button" id="label_switch" style="height:300px;width:300px;" onclick="toggle()">0</button>
     </div>
   </body>
 </html>

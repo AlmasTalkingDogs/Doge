@@ -48,7 +48,7 @@ function plot(divId, websocket, configs) {
   last_time = Date.now()
 
   websocket.onmessage = function(msg) {
-    console.log(msg)
+    // console.log(msg)
     // if (Date.now() - last_time < 10) {
     //   return
     // }
@@ -56,8 +56,11 @@ function plot(divId, websocket, configs) {
 
     msg_data = msg.data.split(",");
     for(index in msg_data) {
+      if (parseInt(index) >= configs.length) {
+        break;
+      }
       var data = parseInt(msg_data[index]);
-      console.log(data, index);
+      // console.log(data, index);
       Plotly.extendTraces(divId, {y: [[data]]}, [parseInt(index)], 250);
     }
   }
