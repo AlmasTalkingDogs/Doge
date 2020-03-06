@@ -199,6 +199,12 @@ async def create_dog(request: Request):
     return json({"id": id})
 
 
+@app.route("/rsrc/dog/<dog_id>", methods=["GET",])
+async def get_dog_json(request: Request, dog_id: int):
+    dog = registry.get_dog_object(dog_id)
+    return json({"id":dog.id, "name":dog.name})
+
+
 @app.websocket("/rsrc/dog/<dog_id>")
 async def write_dog_data(request: Request, ws: WebSocketProtocol, dog_id: int):
     dog = registry.get(f"/dog/{dog_id}")
