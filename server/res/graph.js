@@ -49,9 +49,9 @@ function plot(divId, websocket, configs) {
 
   websocket.onmessage = function(msg) {
     console.log(msg)
-    if (Date.now() - last_time < 1) {
-      return
-    }
+    // if (Date.now() - last_time < 10) {
+    //   return
+    // }
     last_time = Date.now()
 
     msg_data = msg.data.split(",");

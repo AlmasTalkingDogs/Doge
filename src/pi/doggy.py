@@ -70,7 +70,7 @@ async def main(args):
 		while ser.in_waiting == 0:
 			pass
 	async def no_wait():
-		await asyncio.sleep(0)
+		await asyncio.sleep(0.01)
 
 	wait = ser_wait if ser else no_wait
 
