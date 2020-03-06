@@ -46,8 +46,6 @@ registry = Registry()
 async def index(request: Request):
 	global feed_event
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
-	# The tournament therefore starts the first time the page is loaded.
 	index_html = index_template.render()
 	return html(index_html)
 
@@ -56,10 +54,16 @@ async def index(request: Request):
 async def labeler_page(request: Request):
 	global feed_event
 	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
-	# We need to wait for Sanic to do the first asyncio call, because Sanic uses a different loop than Python by default.
-	# The tournament therefore starts the first time the page is loaded.
 	index_html = data_input_template.render()
 	return html(index_html)
+
+@app.route("/dog/<dog_id>")
+async def labeler_page(request: Request, dog_id:int):
+	logger.info(f"Client at {request.ip}:{request.port} requested {request.url}.")
+	with open("res/dog.htm") as f:
+		template = Template(f.read())
+		dog_html = template.render(id=dog_id, config=["data1"])
+		return html(dog_html)
 
 
 @app.websocket("/ws/data/write/<source_id>")
@@ -76,7 +80,7 @@ async def produce_data(request: Request, ws: WebSocketProtocol, source_id: int):
 
 
 @app.websocket("/ws/data/read/<source_id>")
-async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
+async def consume_data2(request: Request, ws: WebSocketProtocol, source_id: str):
 	logger.info(f"Client at {request.ip}:{request.port} opened websocket at {request.url}.")
 	writeRsrc = f"/ws/data/write/{source_id}"
 	if registry.available(writeRsrc):
@@ -92,7 +96,7 @@ async def consume_data(request: Request, ws: WebSocketProtocol, source_id: str):
 
 # Creates random data for testing purposes
 @app.websocket("/ws/data/random")
-async def consume_data(request: Request, ws: WebSocketProtocol):
+async def consume_data3(request: Request, ws: WebSocketProtocol):
 	await sleep(5)
 	label = random.randint(0, 1)
 	while True:
@@ -118,7 +122,7 @@ async def consume_data(request: Request, ws: WebSocketProtocol):
 
 
 @app.route("/rsrc/ing/<dog_id>", methods=["POST", ])
-async def consume_data(request: Request, dog_id: int):
+async def consume_data4(request: Request, dog_id: int):
 	if not registry.available(f"/rsrc/ing/{dog_id}"):
 		logger.debug(f"Client at {request.ip}:{request.port} cannot create an ingestor for {dog_id}")
 		return json(
@@ -146,15 +150,15 @@ async def consume_data(request: Request, dog_id: int):
 	return json({"success": True})
 
 
-@app.websocket("/ws/ingread/<ing_id>")
-async def read_ing_data(request: Request, ws: WebSocketProtocol, ing_id: int):
-	if registry.available(f"/rsrc/ing/{ing_id}"):
-		logger.debug(f"Client at {request.ip}:{request.port} failed to find ingestor {ing_id} for consumption")
+@app.websocket("/ws/ingread/<dog_id>")
+async def read_ing_data(request: Request, ws: WebSocketProtocol, dog_id: int):
+	if registry.available(f"/rsrc/ing/{dog_id}"):
+		logger.debug(f"Client at {request.ip}:{request.port} failed to find dog {dog_id} for consumption")
 		return
 
 	consumer = WebsocketConsumer(ws)
 
-	ing = registry.get(f"/rsrc/ing/{ing_id}")
+	ing = registry.get(f"/rsrc/ing/{dog_id}")
 	ing.registerConsumer(consumer)
 
 	await consumer.listen()
@@ -201,10 +205,11 @@ async def feed_socket(request: Request, ws: WebSocketProtocol):
 
 @app.route("/rsrc/dog/", methods=["POST",])
 async def create_dog(request: Request):
-	id = uuid.uuid1()
-	dog = Dog("Chuchu", id)
+	dog_id = str(uuid.uuid1())
+	dog = Dog("Chuchu", dog_id)
 	registry.add_dog(dog)
-	return json({"id": id})
+	logger.info(f"Client {request.ip}:{request.port} created a new dog {dog.name} id: {dog.id}")
+	return json({"id": dog_id})
 
 
 @app.route("/rsrc/dog/<dog_id>", methods=["GET",])
