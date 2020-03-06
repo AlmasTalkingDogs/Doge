@@ -143,7 +143,8 @@ async def consume_data4(request: Request, dog_id: int):
 	labelizer.registerConsumer(writeFile)
 
 	ensure_future(writeFile.listen())
-	if 'log' in request.json:
+	if 'log' in request.json and request.json['log']:
+		print(request.json)
 		printConsumer = CallbackConsumer(lambda x: print(f"dog_id {dog_id}:", x))
 		labelizer.registerConsumer(printConsumer)
 		ensure_future(printConsumer.listen())

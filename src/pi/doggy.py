@@ -10,13 +10,20 @@ import json
 
 test_modes = ["off", "random", "counter", "wave"]
 
-def counter(i):
-	return str(i % 100)
+count = 0
+def counter():
+	global count
+	count += 1
+	return str(count % 100)
 
-def wave(i):
-	return str(int(50*math.sin(i/5)) + 50)
+def wave():
+	global count
+	count += 1
+	return str(int(50*math.sin(count/5)) + 50)
 
-def rand(i):
+def rand():
+	global count
+	count += 1
 	return str(random.randint(0, 100))
 
 def create_dog(args):
@@ -29,7 +36,8 @@ def create_dog(args):
 
 	URL = "http://" + args.uri + "/rsrc/ing/" + msg["id"]
 	print(URL)
-	r = requests.post(url=URL, json={"fileName": "outdata.csv", "log": False})
+	dog_pre = msg["id"][:6]
+	r = requests.post(url=URL, json={"fileName": f"{dog_pre}.csv", "log": False})
 
 	return msg["id"]
 
@@ -43,14 +51,12 @@ async def socket(args, uri, wait, next_line, send):
 			print("Connection established")
 		while True:
 			await wait()
-			try:
-				line = next_line()
+			line = next_line()
+			if type(line) != str:
 				line = line.decode("UTF-8").strip()
-				if args.verbose:
-					print(line)
-				await send(line)
-			except:
-				pass
+			if args.verbose:
+				print(">",line)
+			await send(line)
 
 
 async def main(args):
@@ -64,7 +70,7 @@ async def main(args):
 		while ser.in_waiting == 0:
 			pass
 	async def no_wait():
-		await asyncio.sleep(1)
+		await asyncio.sleep(0)
 
 	wait = ser_wait if ser else no_wait
 
@@ -80,7 +86,7 @@ async def main(args):
 	async def no_send(data):
 		return
 
-	send = None if ser else no_send
+	send = None if args.uri else no_send
 
 	while True:
 		if args.verbose:
@@ -91,7 +97,7 @@ async def main(args):
 				dog_id = create_dog(args)
 				ws_uri += f"/ws/ing/{dog_id}/1"
 				if args.verbose:
-					print("Using websocket")
+					print("Using websocket", ws_uri)
 				await socket(args, ws_uri, wait, next_line, send)
 			else:
 				if args.verbose:

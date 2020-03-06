@@ -45,21 +45,28 @@ function plot(divId, websocket, configs) {
   // },60);
 
   // Do we assume that the configs always mach the number of data in the message?
+  last_time = Date.now()
+
   websocket.onmessage = function(msg) {
     console.log(msg)
+    if (Date.now() - last_time < 1) {
+      return
+    }
+    last_time = Date.now()
+
     msg_data = msg.data.split(",");
     for(index in msg_data) {
       var data = parseInt(msg_data[index]);
       console.log(data, index);
-      Plotly.extendTraces(divId, {y: [[data]]}, [parseInt(index)], 100);
+      Plotly.extendTraces(divId, {y: [[data]]}, [parseInt(index)], 250);
     }
   }
 }
 
-feedSocket.onopen = function() {
-    console.log("onopen")
-}
+// feedSocket.onopen = function() {
+//     console.log("onopen")
+// }
 
-feedSocket.onclose = function() {
-    console.log("onclose")
-}
+// feedSocket.onclose = function() {
+//     console.log("onclose")
+// }
