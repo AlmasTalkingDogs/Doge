@@ -43,8 +43,8 @@ class Registry():
 			if dog.id == id1:
 				return dog
 
-	def add_dog(self):
-		self.all_dogs.append(self)
+	def add_dog(self, dog):
+		self.all_dogs.append(dog)
 
 	async def kick(self, resource):
 		rsrc = self.get(resource)
