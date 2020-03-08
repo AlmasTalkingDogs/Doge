@@ -125,5 +125,6 @@ if __name__ == "__main__":
 	parser.add_argument('--test', help='set to test modes (default is "off")', choices=test_modes, default=test_modes[0])
 
 	args = parser.parse_args()
-
-	asyncio.run(main(args))
+	loop = asyncio.get_event_loop()
+	loop.run_until_complete(main(args))
+        # asyncio.run(main(args))
