@@ -26,6 +26,7 @@ def rand():
 	count += 1
 	return str(random.randint(0, 100))
 
+
 def create_dog(args):
 	URL = "http://" + args.uri + "/rsrc/dog"
 	print(URL)
@@ -41,6 +42,7 @@ def create_dog(args):
 	r = requests.post(url=URL, json={"fileName": f"{dog_pre}.csv", "log": False})
 
 	return msg["id"]
+
 
 async def socket(args, uri, wait, next_line, send):
 	if args.verbose:

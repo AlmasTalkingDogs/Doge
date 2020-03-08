@@ -128,7 +128,6 @@ async def consume_data4(request: Request, dog_id: str):
 		return json(
 			{"success": False, "msg": f"Client at {request.ip}:{request.port} ingestor for dog {dog_id} is already registered"})
 
-
 	fileName = 'temp.log'
 	if 'fileName' in request.json:
 		fileName = request.json['fileName']
