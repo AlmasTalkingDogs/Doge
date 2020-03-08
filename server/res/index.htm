@@ -32,7 +32,7 @@
 
     {% for dog in dogs %}
     <div class="btn-group">
-      <button type="button" class="btn btn-primary" onclick = "relocate_to_dog({{dog.id}})">
+      <button type="button" class="btn btn-primary" onclick = "relocate_to_dog('{{dog.id}}')">
          {{dog.name}}
       </button>
     </div>

@@ -1,6 +1,6 @@
 var feedSocket = null;
 var randomNumElem = null;
-
+var status_indicator = document.getElementById('status');
 var label = 0;
 
 function getWebSocketURI(socketName) {
@@ -90,5 +90,18 @@ function initIngestor() {
             console.log(Http.responseText)
             state = 0
         }
+    }
+}
+
+
+function labelIngestor() {
+    status_indicator = document.getElementById('status');
+    status_indicator.innerHTML = "connected"
+    feedSocket = new WebSocket(getWebSocketURI("/ws/ing/" + ing_id.value + "/0"));
+    feedSocket.onmessage = handleMessage;
+    feedSocket.onclose = function(event) {
+        status_indicator.innerHTML = "No Connection"
+        state = 0
+        console.log("Closed again")
     }
 }

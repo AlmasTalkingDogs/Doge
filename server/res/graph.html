@@ -1,109 +1,23 @@
 <!DOCTYPE html>
-  <html lang="en" dir="ltr">
-    <head>
-      <meta charset="utf-8">
-      <script src="https://code.jquery.com/jquery-3.4.1.js"
-      integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
-      crossorigin="anonymous"></script>
-      <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-      <script src="/res/live.js" type="text/javascript"></script>
-      <!-- Latest compiled and minified CSS -->
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-3.4.1.js"
+    integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+    crossorigin="anonymous"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="/res/live.js" type="text/javascript"></script>
+    <script src="/res/graph.js" type="text/javascript"></script>
 
-      <!-- jQuery library -->
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-
-      <!-- Latest compiled JavaScript -->
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-
-      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
-
-    </head>
-    <body>
-    <h1 class="text-center">Alma's Talking Dogs</h1>
-      <div class="wrapper">
-        <div id="tester"></div>
-        <script>
-            var last_data = 0
-            var last_label = 0
-
-            console.log("LOG LOG LOG")
-            var feedSocket2 = new WebSocket(getWebSocketURI("/ws/ingread/10"));
-
-            feedSocket2.onmessage = function(msg) {
-                last_data = parseInt(msg.data.split(",")[0]);
-                last_label = parseInt(msg.data.split(",")[1]);
-            }
-
-            feedSocket2.onopen = function() {
-                console.log("onopen")
-            }
-
-            feedSocket2.onclose = function() {
-                console.log("onclose")
-            }
-
-            function getData() {
-              return last_data; //could just make this return the list values.
-            }
-            function getDataFromList(list) {
-              return list.shift();
-            }
-            function createGraph(div_id) {
-
-            }
-            var counter = 0;
-            var layout = {
-              title: 'EEG Livestream',
-              xaxis: {
-                fixedrange: true,
-                showticklabels: false
-              },
-              yaxis: {
-                fixedrange: true
-              }
-            };
-
-            Plotly.plot('tester', [{
-              y:[getData()],
-              type:'scatter'
-            }], layout, {displayModeBar: false});
-            setInterval(function(){
-                Plotly.extendTraces('tester',{ y:[[getData()]]}, [0]);
-                counter++;
-                if(counter > 50) {
-                    Plotly.relayout('tester',{
-                        xaxis: {
-                            range: [counter-50,counter],
-                            fixedrange: true
-                        }
-                    });
-                }
-            },60);
-
-        </script>
-
-      <div class="text-center">
-        <div class="btn-group-vertical">
-          <!--
-          When the first button is clicked, data should start flowing from
-          the Arduino to the phone
-
-          When the second button is clicked, data should stop flowing.
-         -->
-
-          <button type="button" class="btn btn-primary" onclick = "">
-             Start Collection
-          </button>
-          <button type="button" class="btn btn-primary" onclick = "">
-             Show Treat
-          <button type="button" class="btn btn-primary" onclick = "">
-            End Session
-          </button>
-        
-        </div>
-      </div>
-
-
-    </body>
-  </html>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div id="tester"></div>
+      <script>
+          var feedSocket = new WebSocket(getWebSocketURI("/ws/data/random"));
+          plot('tester', feedSocket, ['data1']);
+      </script>
+    </div>
+    </div>
+  </body>
+</html>
