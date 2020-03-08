@@ -27,4 +27,4 @@ venv.bak/
 
 # Ignore log files
 *.log
-
+.DS_STORE
