@@ -54,7 +54,10 @@ async def socket(args, uri, wait, next_line, send):
 			await wait()
 			line = next_line()
 			if type(line) != str:
-				line = line.decode("UTF-8").strip()
+				try:
+					line = line.decode("UTF-8").strip()
+				except:
+					continue
 			if args.verbose:
 				print(">",line)
 			await send(line)
