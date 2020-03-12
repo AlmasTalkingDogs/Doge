@@ -6,7 +6,6 @@ var currentGraph = 0;
 function plot(divId, websocket, configs) {
   var counter = 0;
 
-  var currTrace = 1;
   for(i in configs) {
     datalist[configs[i]] = [];
   }
@@ -45,21 +44,33 @@ function plot(divId, websocket, configs) {
   // },60);
 
   // Do we assume that the configs always mach the number of data in the message?
+
   websocket.onmessage = function(msg) {
-    console.log(msg)
+    // console.log(msg)
     msg_data = msg.data.split(",");
     for(index in msg_data) {
-      var data = parseInt(msg_data[index]);
-      console.log(data, index);
-      Plotly.extendTraces(divId, {y: [[data]]}, [parseInt(index)], 100);
+      if (parseInt(index) >= configs.length) {
+        break;
+      }
+      datalist[configs[index]].push(parseInt(msg_data[index]));
+      // console.log(data, index);
+
+    }
+    for(index in configs) {
+      if(datalist[configs[index]].length >= 50) {
+        if(parseInt(index) < 2) {
+          Plotly.extendTraces(divId, {y: [datalist[configs[index]]]}, [parseInt(index)], 500);
+        }
+        datalist[configs[index]] = [];
+      }
     }
   }
 }
 
-feedSocket.onopen = function() {
-    console.log("onopen")
-}
+// feedSocket.onopen = function() {
+//     console.log("onopen")
+// }
 
-feedSocket.onclose = function() {
-    console.log("onclose")
-}
+// feedSocket.onclose = function() {
+//     console.log("onclose")
+// }

@@ -1,15 +1,45 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
 
-<head>
-     <meta charset="UTF-8"> 
-    <link rel="stylesheet" href="/res/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
-    <script src="/res/live.js" type="text/javascript"></script>
-    <title>Alma's Talking Dogs</title>
-</head>
+    <link rel="stylesheet" type="text/css" href="style2.css">
+        <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
-<body onload="initFeed();">
-    Test Page <div id="number"></div>
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <title>Bootstrap Tutorial Sample Page</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      function relocate_to_dog(dogid)
+      {
+        location.href = "/dog/" + dogid;
+      }
+
+    </script>
+  </head>
+
+<body>
+  <h2 class="text-center">Alma's Talking Dogs</h2>
+
+  <div class="text-center">
+    <div class="btn-group-vertical">
+
+    {% for dog in dogs %}
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" onclick = "relocate_to_dog('{{dog.id}}')">
+         {{dog.name}}
+      </button>
+    </div>
+    {% endfor %}
+
+      </div>
+    </div>
+  </div>
 </body>
-
 </html>
