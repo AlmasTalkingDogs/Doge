@@ -120,7 +120,7 @@ async def main(args):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Read given serial port.')
 	parser.add_argument('-s', '--serial', help='serial port (ex: /dev/ttyACM0)', type=str, default="/dev/ttyACM0")
-	parser.add_argument('-u', '--uri', help='the uri to connect to', type=str)
+	parser.add_argument('-u', '--uri', help='the uri to connect to', type=str, required=True)
 	parser.add_argument('-v', '--verbose', help='set verbose print', action='store_true')
 	parser.add_argument('--test', help='set to test modes (default is "off")', choices=test_modes, default=test_modes[0])
 
