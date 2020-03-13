@@ -50,12 +50,12 @@ class Registry():
 		rsrc = self.get(resource)
 		# Make sure that the consumers are active
 		if isinstance(rsrc, EventConsumer):
-			rsrc.exit()
+			await rsrc.exit()
 		# Make sure that the producers are active
 		elif isinstance(rsrc, EventProducer):
-			rsrc.exit()
+			await rsrc.exit()
 		# Make sure that the ingestor is active
 		elif isinstance(rsrc, EventIngestor):
-			rsrc.exit()
+			await rsrc.exit()
 
 		self._registry[resource] = None

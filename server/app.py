@@ -151,6 +151,19 @@ async def consume_data4(request: Request, dog_id: str):
 	return json({"success": True})
 
 
+@app.route("/rsrc/ing/<dog_id>", methods=["DELETE", ])
+async def close_ing(request: Request, dog_id: str):
+	if registry.available(f"/rsrc/ing/{dog_id}"):
+		logger.debug(f"Client at {request.ip}:{request.port} cannot create an ingestor for {dog_id}")
+		return json({"success": False, "msg": f"Client at {request.ip}:{request.port} ingestor for dog {dog_id} is not registered"})
+
+	try:
+		await registry.kick(f"/rsrc/ing/{dog_id}")
+	except Exception as e:
+		return json({"success": False, "msg": str(e)})
+	return json({"success": True, "msg": "It worked"})
+
+
 @app.websocket("/ws/ingread/<dog_id>")
 async def read_ing_data(request: Request, ws: WebSocketProtocol, dog_id: int):
 	if registry.available(f"/rsrc/ing/{dog_id}"):
@@ -251,3 +264,5 @@ app.error_handler.add(NotFound, missing_handler)
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=8080)
+
+

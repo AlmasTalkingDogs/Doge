@@ -37,12 +37,16 @@ class EventIngestor():
 
 	async def notifyAll(self, data):
 		if not self.active:
-			raise Exception("Not active")
+			# raise Exception("Not active")
+			return
 		await self.producer.notify(data)
 
 	async def exit(self):
+		print(self.callconsumers)
 		self.active = False
-		for i, c in callconsumers:
+		for i in self.callconsumers:
+			c = self.callconsumers[i]
+			print(i,c)
 			if c.active:
 				await c.exit()
 		await self.producer.exit()
